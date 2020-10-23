@@ -20,14 +20,20 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnMapClickListener;
 import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
 import android.os.Bundle;
+import android.view.View;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 
 /**
  * This shows how to close the info window when the currently selected marker is re-tapped.
@@ -45,6 +51,8 @@ public class MarkerCloseInfoWindowOnRetapDemoActivity extends AppCompatActivity 
 
     private GoogleMap mMap = null;
 
+    private BottomSheetBehavior<View> bottomSheetBehavior;
+
     /**
      * Keeps track of the selected marker.
      */
@@ -58,6 +66,25 @@ public class MarkerCloseInfoWindowOnRetapDemoActivity extends AppCompatActivity 
         SupportMapFragment mapFragment =
                 (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         new OnMapAndViewReadyListener(mapFragment, this);
+
+        setupBottomSheet();
+    }
+
+    private void setupBottomSheet() {
+        View bottom_sheet = findViewById(R.id.bottom_sheet);
+        bottomSheetBehavior = BottomSheetBehavior.from(bottom_sheet);
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        bottomSheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+            @Override
+            public void onStateChanged(@NonNull View bottomSheet, int newState) {
+
+            }
+
+            @Override
+            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+
+            }
+        });
     }
 
     @Override
@@ -89,33 +116,41 @@ public class MarkerCloseInfoWindowOnRetapDemoActivity extends AppCompatActivity 
                 .include(MELBOURNE)
                 .build();
         mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 50));
+
+
     }
 
     private void addMarkersToMap() {
        mMap.addMarker(new MarkerOptions()
                 .position(BRISBANE)
                 .title("Brisbane")
-                .snippet("Population: 2,074,200"));
+                .snippet("Population: 2,074,200")
+               .icon(BitmapDescriptorFactory.fromResource(R.drawable.badge_nsw)));
 
         mMap.addMarker(new MarkerOptions()
                 .position(SYDNEY)
                 .title("Sydney")
-                .snippet("Population: 4,627,300"));
+                .snippet("Population: 4,627,300")
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.badge_nt)));
 
         mMap.addMarker(new MarkerOptions()
                 .position(MELBOURNE)
                 .title("Melbourne")
-                .snippet("Population: 4,137,400"));
+                .snippet("Population: 4,137,400")
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.badge_qld)));
 
         mMap.addMarker(new MarkerOptions()
                 .position(PERTH)
                 .title("Perth")
-                .snippet("Population: 1,738,800"));
+                .snippet("Population: 1,738,800")
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.badge_sa)));
 
         mMap.addMarker(new MarkerOptions()
                 .position(ADELAIDE)
                 .title("Adelaide")
-                .snippet("Population: 1,213,000"));
+                .snippet("Population: 1,213,000")
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.badge_victoria)));
+
     }
 
     @Override
@@ -123,6 +158,7 @@ public class MarkerCloseInfoWindowOnRetapDemoActivity extends AppCompatActivity 
         // Any showing info window closes when the map is clicked.
         // Clear the currently selected marker.
         mSelectedMarker = null;
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
     }
 
     @Override
@@ -138,6 +174,8 @@ public class MarkerCloseInfoWindowOnRetapDemoActivity extends AppCompatActivity 
             return true;
         }
 
+        bottomSheetBehavior.setPeekHeight(80);
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
         mSelectedMarker = marker;
 
         // Return false to indicate that we have not consumed the event and that we wish
