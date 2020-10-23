@@ -174,7 +174,8 @@ public class MarkerCloseInfoWindowOnRetapDemoActivity extends AppCompatActivity 
             return true;
         }
 
-        bottomSheetBehavior.setPeekHeight(80);
+        // FIXME: this value should be dynamic
+        bottomSheetBehavior.setPeekHeight(200);
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
         mSelectedMarker = marker;
 
