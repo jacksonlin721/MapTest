@@ -163,7 +163,8 @@
         <activity
             android:name=".VisibleRegionDemoActivity"
             android:label="@string/visible_region_demo_label" />
-
+        <activity
+            android:name=".oauth.GoogleLogin"/>
     </application>
 
 </manifest>

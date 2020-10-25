@@ -15,6 +15,7 @@
 
 package com.example.mapdemo;
 
+import com.example.mapdemo.oauth.GoogleLogin;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnMapClickListener;
@@ -27,13 +28,24 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewTreeObserver;
+import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
+
+import java.util.concurrent.Callable;
+import java.util.concurrent.FutureTask;
 
 /**
  * This shows how to close the info window when the currently selected marker is re-tapped.
@@ -48,15 +60,34 @@ public class MarkerCloseInfoWindowOnRetapDemoActivity extends AppCompatActivity 
     private static final LatLng SYDNEY = new LatLng(-33.87365, 151.20689);
     private static final LatLng ADELAIDE = new LatLng(-34.92873, 138.59995);
     private static final LatLng PERTH = new LatLng(-31.952854, 115.857342);
+    private static final String TAG = "MarkerCloseInfoWindowOnRetapDemoActivity";
 
     private GoogleMap mMap = null;
 
     private BottomSheetBehavior<View> bottomSheetBehavior;
+    private int contentHeight;
 
     /**
      * Keeps track of the selected marker.
      */
     private Marker mSelectedMarker;
+    private String stateToString(int state) {
+        switch (state) {
+            case BottomSheetBehavior.STATE_DRAGGING:
+                return "STATE_DRAGGING";
+            case BottomSheetBehavior.STATE_SETTLING:
+                return "STATE_SETTLING";
+            case BottomSheetBehavior.STATE_EXPANDED:
+                return "STATE_EXPANDED";
+            case BottomSheetBehavior.STATE_COLLAPSED:
+                return "STATE_COLLAPSED";
+            case BottomSheetBehavior.STATE_HIDDEN:
+                return "STATE_HIDDEN";
+            case BottomSheetBehavior.STATE_HALF_EXPANDED:
+                return "STATE_HALF_EXPANDED";
+        }
+        return "";
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +101,50 @@ public class MarkerCloseInfoWindowOnRetapDemoActivity extends AppCompatActivity 
         setupBottomSheet();
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.login, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.signin:
+                startActivityForResult(new Intent(this, GoogleLogin.class), 0);
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == 0) {
+            GetPhoto getPhoto = GetPhoto.getInstance();
+            getPhoto.setContext(this);
+            FutureTask futureTask = getFutureTask(getPhoto);
+            while (!futureTask.isDone()) {}
+            getPhoto.getPhoto();
+        }
+    }
+
+    private FutureTask<Void> getFutureTask(GetPhoto getPhoto) {
+
+        FutureTask<Void> futureTask = new FutureTask<Void>(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                getPhoto.init();
+                return null;
+            }
+        });
+        Thread thread = new Thread(futureTask);
+        thread.start();
+
+        return futureTask;
+    }
+
     private void setupBottomSheet() {
         View bottom_sheet = findViewById(R.id.bottom_sheet);
         bottomSheetBehavior = BottomSheetBehavior.from(bottom_sheet);
@@ -77,12 +152,24 @@ public class MarkerCloseInfoWindowOnRetapDemoActivity extends AppCompatActivity 
         bottomSheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
             @Override
             public void onStateChanged(@NonNull View bottomSheet, int newState) {
-
+                Log.e(TAG,"[onStateChanged] newState= "+stateToString(newState));
             }
 
             @Override
             public void onSlide(@NonNull View bottomSheet, float slideOffset) {
 
+            }
+        });
+
+        getBottomSheetContentHeight(bottom_sheet);
+    }
+
+    private void getBottomSheetContentHeight(View view) {
+        ViewTreeObserver viewTreeObserver = view.getViewTreeObserver();
+        viewTreeObserver.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                contentHeight = view.getHeight();
             }
         });
     }
@@ -176,7 +263,7 @@ public class MarkerCloseInfoWindowOnRetapDemoActivity extends AppCompatActivity 
 
         // FIXME: this value should be dynamic
         bottomSheetBehavior.setPeekHeight(200);
-        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
         mSelectedMarker = marker;
 
         // Return false to indicate that we have not consumed the event and that we wish
