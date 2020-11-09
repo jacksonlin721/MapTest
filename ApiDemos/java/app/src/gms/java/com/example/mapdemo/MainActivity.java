@@ -88,6 +88,8 @@ public final class MainActivity extends AppCompatActivity
         if (getString(R.string.maps_api_key).isEmpty()) {
             Toast.makeText(this, "Add your own API key in ApiDemos/java/secure.properties as MAPS_API_KEY=YOUR_API_KEY", Toast.LENGTH_LONG).show();
         }
+
+
     }
 
     @Override

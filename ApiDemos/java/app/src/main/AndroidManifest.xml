@@ -15,6 +15,7 @@
   ~ limitations under the License.
   -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.example.mapdemo">
 
     <!--
@@ -26,11 +27,11 @@
 
     <!-- EXTERNAL_STORAGE permissions are optional for Android 6.0 onwards. -->
     <uses-permission
-        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="22" />
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission
-        android:name="android.permission.READ_EXTERNAL_STORAGE"
-        android:maxSdkVersion="22" />
+        android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission
+        android:name="android.permission.INTERNET"/>
 
     <application
         android:allowBackup="true"
@@ -165,6 +166,8 @@
             android:label="@string/visible_region_demo_label" />
         <activity
             android:name=".oauth.GoogleLogin"/>
+        <activity
+            android:name="com.example.photo.view.PhotoView"/>
     </application>
 
 </manifest>

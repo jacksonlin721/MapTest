@@ -1,35 +1,42 @@
 package com.example.mapdemo;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.google.android.gms.common.api.ApiException;
+import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
+import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
+import com.google.api.client.extensions.java6.auth.oauth2.VerificationCodeReceiver;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.client.util.store.MemoryDataStoreFactory;
-import com.google.api.gax.core.FixedCredentialsProvider;
-import com.google.auth.Credentials;
-import com.google.auth.oauth2.UserCredentials;
 import com.google.common.collect.ImmutableList;
 import com.google.photos.library.v1.PhotosLibraryClient;
 import com.google.photos.library.v1.PhotosLibrarySettings;
 import com.google.photos.library.v1.internal.InternalPhotosLibraryClient;
 import com.google.photos.types.proto.MediaItem;
 
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.Credentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 
 class GetPhoto {
     private static GetPhoto getPhotoInstance;
@@ -102,14 +109,14 @@ class GetPhoto {
         PhotosLibrarySettings settings =
                 PhotosLibrarySettings.newBuilder()
                         .setCredentialsProvider(
-                                FixedCredentialsProvider.create(
-                                        getUserCredentials(REQUIRED_SCOPES)
-                                ))
+//                                FixedCredentialsProvider.create(
+//                                        getUserCredentials(REQUIRED_SCOPES))
+                                (com.google.api.gax.core.CredentialsProvider) getUserCredentials(REQUIRED_SCOPES))
                         .build();
         return settings;
     }
 
-    private static Credentials getUserCredentials(List<String> selectedScopes)
+    private CredentialsProvider getUserCredentials(List<String> selectedScopes)
             throws IOException, GeneralSecurityException {
 
         GoogleClientSecrets clientSecrets =
@@ -137,11 +144,61 @@ class GetPhoto {
                         .build();
         LocalServerReceiver receiver =
                 new LocalServerReceiver.Builder().setPort(LOCAL_RECEIVER_PORT).build();
-        Credential credential = new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
-        return UserCredentials.newBuilder()
+//        Credential credential = new AuthorizationCodeInstalledAppInternal(flow, receiver).authorize("user");
+        FutureTask futureTask = getFutureTask(flow, receiver);
+        while (!futureTask.isDone()) {}
+        Credential credential = null;
+        try {
+            credential = (Credential)futureTask.get();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        CredentialsProvider credProvider = new BasicCredentialsProvider();
+        credProvider.setCredentials(new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT),
+                (Credentials) MarkerCloseInfoWindowOnRetapDemoActivity.Credential);
+
+        return credProvider;
+
+        /*return UserCredentials.newBuilder()
                 .setClientId(clientId)
                 .setClientSecret(clientSecret)
                 .setRefreshToken(credential.getRefreshToken())
-                .build();
+                .build();*/
     }
+
+    private FutureTask<Credential> getFutureTask(GoogleAuthorizationCodeFlow flow, LocalServerReceiver receiver) {
+        FutureTask<Credential> futureTask = new FutureTask<Credential>(new Callable<Credential>() {
+            @Override
+            public Credential call() throws Exception {
+                return new AuthorizationCodeInstalledAppInternal(flow, receiver).authorize("user");
+            }
+        });
+        Thread thread = new Thread(futureTask);
+        thread.start();
+
+        return futureTask;
+    }
+
+    static class AuthorizationCodeInstalledAppInternal extends AuthorizationCodeInstalledApp {
+        AuthorizationCodeFlow flow;
+        VerificationCodeReceiver receiver;
+
+        public AuthorizationCodeInstalledAppInternal(AuthorizationCodeFlow flow, VerificationCodeReceiver receiver) {
+            super(flow, receiver);
+            this.flow = flow;
+            this.receiver = receiver;
+        }
+
+        @Override
+        protected void onAuthorization(AuthorizationCodeRequestUrl authorizationUrl) throws IOException {
+            String url = authorizationUrl.build();
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            ((Activity)mContext).startActivity(intent);
+        }
+    }
+
+
 }

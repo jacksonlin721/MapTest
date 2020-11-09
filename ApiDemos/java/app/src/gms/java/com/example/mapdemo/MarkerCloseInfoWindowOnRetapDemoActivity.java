@@ -16,6 +16,10 @@
 package com.example.mapdemo;
 
 import com.example.mapdemo.oauth.GoogleLogin;
+import com.example.photo.view.PhotoView;
+import com.google.android.gms.auth.api.credentials.Credential;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnMapClickListener;
@@ -28,7 +32,13 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
+import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -43,7 +53,11 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import java.security.Permission;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 
@@ -66,6 +80,9 @@ public class MarkerCloseInfoWindowOnRetapDemoActivity extends AppCompatActivity 
 
     private BottomSheetBehavior<View> bottomSheetBehavior;
     private int contentHeight;
+    GoogleSignInAccount account;
+
+    public static Credential Credential;
 
     /**
      * Keeps track of the selected marker.
@@ -102,6 +119,18 @@ public class MarkerCloseInfoWindowOnRetapDemoActivity extends AppCompatActivity 
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        account = GoogleSignIn.getLastSignedInAccount(this);
+        Log.e(TAG,"[onStart] account null? "+(account==null));
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.login, menu);
         return true;
@@ -111,7 +140,13 @@ public class MarkerCloseInfoWindowOnRetapDemoActivity extends AppCompatActivity 
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
             case R.id.signin:
-                startActivityForResult(new Intent(this, GoogleLogin.class), 0);
+                /*if (account==null) {
+                    startActivityForResult(new Intent(this, GoogleLogin.class), 0);
+                } else {
+                    getPhotoInstance();
+                }
+                */
+                startActivity(new Intent(this, PhotoView.class));
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -122,12 +157,16 @@ public class MarkerCloseInfoWindowOnRetapDemoActivity extends AppCompatActivity 
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == 0) {
-            GetPhoto getPhoto = GetPhoto.getInstance();
-            getPhoto.setContext(this);
-            FutureTask futureTask = getFutureTask(getPhoto);
-            while (!futureTask.isDone()) {}
-            getPhoto.getPhoto();
+//            getPhotoInstance();
         }
+    }
+
+    private void  getPhotoInstance() {
+        GetPhoto getPhoto = GetPhoto.getInstance();
+        getPhoto.setContext(this);
+        FutureTask futureTask = getFutureTask(getPhoto);
+        while (!futureTask.isDone()) {}
+        getPhoto.getPhoto();
     }
 
     private FutureTask<Void> getFutureTask(GetPhoto getPhoto) {
