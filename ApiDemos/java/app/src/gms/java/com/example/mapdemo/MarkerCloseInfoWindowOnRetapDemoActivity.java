@@ -16,6 +16,10 @@
 package com.example.mapdemo;
 
 import com.example.mapdemo.oauth.GoogleLogin;
+import com.example.photo.adapter.PhotoAdapter;
+import com.example.photo.model.PhotoModel;
+import com.example.photo.presenter.PhotoPresenter;
+import com.example.photo.view.IGetPhotoView;
 import com.example.photo.view.PhotoView;
 import com.google.android.gms.auth.api.credentials.Credential;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -55,8 +59,11 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.security.Permission;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
@@ -67,7 +74,8 @@ import java.util.concurrent.FutureTask;
 public class MarkerCloseInfoWindowOnRetapDemoActivity extends AppCompatActivity implements
         OnMarkerClickListener,
         OnMapClickListener,
-        OnMapAndViewReadyListener.OnGlobalLayoutAndMapReadyListener {
+        OnMapAndViewReadyListener.OnGlobalLayoutAndMapReadyListener,
+        IGetPhotoView {
 
     private static final LatLng BRISBANE = new LatLng(-27.47093, 153.0235);
     private static final LatLng MELBOURNE = new LatLng(-37.81319, 144.96298);
@@ -83,6 +91,9 @@ public class MarkerCloseInfoWindowOnRetapDemoActivity extends AppCompatActivity 
     GoogleSignInAccount account;
 
     public static Credential Credential;
+
+    private PhotoAdapter photoAdapter;
+    private PhotoPresenter photoPresenter;
 
     /**
      * Keeps track of the selected marker.
@@ -116,6 +127,14 @@ public class MarkerCloseInfoWindowOnRetapDemoActivity extends AppCompatActivity 
         new OnMapAndViewReadyListener(mapFragment, this);
 
         setupBottomSheet();
+
+        photoPresenter = new PhotoPresenter(this);
+        photoAdapter = new PhotoAdapter(this, photoPresenter);
+        setRecyclerView();
+
+        if(checkPermission()){
+            photoPresenter.getPhotoList();
+        }
     }
 
     @Override
@@ -161,6 +180,41 @@ public class MarkerCloseInfoWindowOnRetapDemoActivity extends AppCompatActivity 
         }
     }
 
+    private boolean checkPermission() {
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.READ_EXTERNAL_STORAGE) ==
+                PackageManager.PERMISSION_GRANTED) {
+            return true;
+        } else {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(
+                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                        3
+                );
+            } else {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                        3
+                );
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case 3:
+                if(permissions.length > 1 &&
+                        permissions[0].equalsIgnoreCase(Manifest.permission.READ_EXTERNAL_STORAGE) &&
+                        grantResults.length > 1 &&
+                        grantResults[0] != -1) {
+                    photoPresenter.getPhotoList();
+                }
+                break;
+        }
+    }
+
     private void  getPhotoInstance() {
         GetPhoto getPhoto = GetPhoto.getInstance();
         getPhoto.setContext(this);
@@ -201,6 +255,14 @@ public class MarkerCloseInfoWindowOnRetapDemoActivity extends AppCompatActivity 
         });
 
         getBottomSheetContentHeight(bottom_sheet);
+    }
+
+    private void setRecyclerView() {
+        RecyclerView recyclerView = findViewById(R.id.recyclerView);
+        GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 4);
+//        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(gridLayoutManager);
+        recyclerView.setAdapter(photoAdapter);
     }
 
     private void getBottomSheetContentHeight(View view) {
@@ -301,12 +363,17 @@ public class MarkerCloseInfoWindowOnRetapDemoActivity extends AppCompatActivity 
         }
 
         // FIXME: this value should be dynamic
-        bottomSheetBehavior.setPeekHeight(200);
+        bottomSheetBehavior.setPeekHeight(600);
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
         mSelectedMarker = marker;
 
         // Return false to indicate that we have not consumed the event and that we wish
         // for the default behavior to occur.
         return false;
+    }
+
+    @Override
+    public void updateData(ArrayList<PhotoModel> photoArrayList) {
+        photoAdapter.updateData(photoArrayList);
     }
 }

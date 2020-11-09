@@ -24,36 +24,9 @@
         android:layout_margin="10dp"
         android:background="@android:color/white"/>
 
-    <GridLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_span="4">
-
-        <ImageView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:src="@drawable/badge_nsw"
-            android:layout_columnWeight="1"/>
-
-        <ImageView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:src="@drawable/badge_nt"
-            android:layout_columnWeight="1"/>
-
-        <ImageView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:src="@drawable/badge_qld"
-            android:layout_columnWeight="1"/>
-
-        <ImageView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:src="@drawable/badge_sa"
-            android:layout_columnWeight="1"/>
-
-    </GridLayout>
+        android:layout_height="match_parent"/>
 
 </LinearLayout>
