@@ -35,6 +35,8 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.maps.android.clustering.ClusterManager;
+import com.google.maps.android.clustering.view.DefaultClusterRenderer;
 
 import android.Manifest;
 import android.content.Context;
@@ -94,6 +96,8 @@ public class MarkerCloseInfoWindowOnRetapDemoActivity extends AppCompatActivity 
 
     private PhotoAdapter photoAdapter;
     private PhotoPresenter photoPresenter;
+
+    private ClusterManager<MarkerClusterItems> clusterManager;
 
     /**
      * Keeps track of the selected marker.
@@ -305,7 +309,7 @@ public class MarkerCloseInfoWindowOnRetapDemoActivity extends AppCompatActivity 
                 .build();
         mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 50));
 
-
+        handlingMarkerCluster();
     }
 
     private void addMarkersToMap() {
@@ -338,7 +342,39 @@ public class MarkerCloseInfoWindowOnRetapDemoActivity extends AppCompatActivity 
                 .title("Adelaide")
                 .snippet("Population: 1,213,000")
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.badge_victoria)));
+    }
 
+    private void handlingMarkerCluster() {
+        // Position the map.
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(BRISBANE, 10));
+
+        // Initialize the manager with the context and the map.
+        // (Activity extends context, so we can pass 'this' in the constructor.)
+        clusterManager = new ClusterManager<>(this, mMap);
+
+        // Point the map's listeners at the listeners implemented by the cluster
+        // manager.
+        mMap.setOnCameraIdleListener(clusterManager);
+        mMap.setOnMarkerClickListener(clusterManager);
+
+        // Add cluster items (markers) to the cluster manager.
+        addItems();
+    }
+
+    private void addItems() {
+
+        // Set some lat/lng coordinates to start with.
+        double lat = -27.47093;
+        double lng = 153.0235;
+
+        // Add ten cluster items in close proximity, for purposes of this example.
+        for (int i = 0; i < 10; i++) {
+            double offset = (double) i;
+            lat = lat + offset;
+            lng = lng + offset;
+            MarkerClusterItems offsetItem = new MarkerClusterItems(lat, lng, "Title " + i, "Snippet " + i);
+            clusterManager.addItem(offsetItem);
+        }
     }
 
     @Override
@@ -375,5 +411,16 @@ public class MarkerCloseInfoWindowOnRetapDemoActivity extends AppCompatActivity 
     @Override
     public void updateData(ArrayList<PhotoModel> photoArrayList) {
         photoAdapter.updateData(photoArrayList);
+    }
+
+    /*
+    * Ref: https://github.com/googlemaps/android-maps-utils.git
+    * */
+    private class PhotoRender extends DefaultClusterRenderer<MarkerClusterItems> {
+
+        public PhotoRender(Context context, GoogleMap map, ClusterManager<MarkerClusterItems> clusterManager) {
+            super(context, map, clusterManager);
+        }
+
     }
 }
