@@ -137,7 +137,7 @@ public class MarkerCloseInfoWindowOnRetapDemoActivity extends AppCompatActivity 
         setRecyclerView();
 
         if(checkPermission()){
-            photoPresenter.getPhotoList();
+//            photoPresenter.getPhotoList();
         }
     }
 
