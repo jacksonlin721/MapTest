@@ -1,47 +1,71 @@
 package com.example.photo.view;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.pm.PackageManager;
-import android.media.Image;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.paging.PagedList;
 import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
 import com.example.mapdemo.R;
 import com.example.photo.adapter.PhotoAdapter;
+import com.example.photo.adapter.PhotoPagedListAdapter;
 import com.example.photo.model.PhotoModel;
+import com.example.photo.model.PhotoViewModel;
 import com.example.photo.presenter.PhotoPresenter;
 
-import java.io.File;
 import java.util.ArrayList;
 
-public class PhotoView extends Activity implements IGetPhotoView {
+public class PhotoView extends AppCompatActivity implements IGetPhotoView {
     PhotoAdapter photoAdapter;
+    PhotoPagedListAdapter photoPagedListAdapter;
     PhotoPresenter photoPresenter;
     ImageView imageView;
+    private String TAG = "PhotoView";
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.photolist);
         photoPresenter = new PhotoPresenter(this);
+//        initNormalAdapter();
+
+        initViewModel();
+    }
+
+    private void initNormalAdapter() {
         photoAdapter = new PhotoAdapter(this, photoPresenter);
         setRecyclerView();
-        if(checkPermisstion()) {
+        if(checkPermission()) {
             photoPresenter.getPhotoList();
         }
+    }
+
+    private void initViewModel() {
+        PhotoViewModel photoViewModel = new ViewModelProvider(
+                this, new ViewModelProvider.NewInstanceFactory()).get(PhotoViewModel.class);
+        photoViewModel.setPresenter(photoPresenter);
+        photoPagedListAdapter = new PhotoPagedListAdapter(this);
+        setRecyclerView();
+        photoViewModel.initPhotoListLiveData();
+        photoViewModel.photoList.observe(this, new Observer<PagedList<PhotoModel>>() {
+            @Override
+            public void onChanged(PagedList<PhotoModel> photoModels) {
+                Log.e(TAG,"[onChanged] photo model size= "+photoModels.size());
+                photoPagedListAdapter.submitList(photoModels);
+            }
+        });
     }
 
     @Override
@@ -54,10 +78,10 @@ public class PhotoView extends Activity implements IGetPhotoView {
         GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 4);
 //        recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(gridLayoutManager);
-        recyclerView.setAdapter(photoAdapter);
+        recyclerView.setAdapter(photoPagedListAdapter);
     }
 
-    private boolean checkPermisstion() {
+    public boolean checkPermission() {
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.READ_EXTERNAL_STORAGE) ==
                 PackageManager.PERMISSION_GRANTED) {
