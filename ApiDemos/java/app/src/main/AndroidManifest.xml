@@ -168,6 +168,8 @@
             android:name=".oauth.GoogleLogin"/>
         <activity
             android:name="com.example.photo.view.PhotoView"/>
+        <activity
+            android:name="com.example.mapdemo.FolderTest"/>
     </application>
 
 </manifest>

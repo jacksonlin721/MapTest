@@ -270,4 +270,5 @@
     <string name="marker_collision_label">Marker Collision</string>
     <string name="marker_collision_description">Demonstrates different supported marker collision behaviors.</string>
 
+    <string name="folder_test">Folder test</string>
 </resources>
