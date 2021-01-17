@@ -133,8 +133,5 @@ public final class DemoDetailsList {
             new DemoDetails(R.string.visible_region_demo_label,
                     R.string.visible_region_demo_description,
                     VisibleRegionDemoActivity.class),
-            new DemoDetails(R.string.folder_test,
-                    R.string.folder_test,
-                    FolderTest.class)
     };
 }
