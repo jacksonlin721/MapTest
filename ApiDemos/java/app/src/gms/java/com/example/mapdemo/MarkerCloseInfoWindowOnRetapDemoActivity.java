@@ -16,6 +16,7 @@
 package com.example.mapdemo;
 
 import com.example.mapdemo.oauth.GoogleLogin;
+import com.example.photo.adapter.MarkerInfoWindow;
 import com.example.photo.adapter.PhotoAdapter;
 import com.example.photo.model.PhotoModel;
 import com.example.photo.presenter.PhotoPresenter;
@@ -77,7 +78,7 @@ public class MarkerCloseInfoWindowOnRetapDemoActivity extends AppCompatActivity 
         OnMarkerClickListener,
         OnMapClickListener,
         OnMapAndViewReadyListener.OnGlobalLayoutAndMapReadyListener,
-        IGetPhotoView {
+        IGetPhotoView, GoogleMap.OnInfoWindowClickListener {
 
     private static final LatLng BRISBANE = new LatLng(-27.47093, 153.0235);
     private static final LatLng MELBOURNE = new LatLng(-37.81319, 144.96298);
@@ -188,6 +189,7 @@ public class MarkerCloseInfoWindowOnRetapDemoActivity extends AppCompatActivity 
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.READ_EXTERNAL_STORAGE) ==
                 PackageManager.PERMISSION_GRANTED) {
+            photoPresenter.getPhotoList();
             return true;
         } else {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -309,7 +311,9 @@ public class MarkerCloseInfoWindowOnRetapDemoActivity extends AppCompatActivity 
                 .build();
         mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 50));
 
-        handlingMarkerCluster();
+        mMap.setOnInfoWindowClickListener(this);
+
+//        handlingMarkerCluster();
     }
 
     private void addMarkersToMap() {
@@ -342,6 +346,8 @@ public class MarkerCloseInfoWindowOnRetapDemoActivity extends AppCompatActivity 
                 .title("Adelaide")
                 .snippet("Population: 1,213,000")
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.badge_victoria)));
+
+        mMap.setInfoWindowAdapter(new MarkerInfoWindow(photoPresenter, getLayoutInflater(), mSelectedMarker, this));
     }
 
     private void handlingMarkerCluster() {
@@ -369,7 +375,7 @@ public class MarkerCloseInfoWindowOnRetapDemoActivity extends AppCompatActivity 
 
         // Add ten cluster items in close proximity, for purposes of this example.
         for (int i = 0; i < 10; i++) {
-            double offset = (double) i;
+            double offset = (double) i * Math.random();
             lat = lat + offset;
             lng = lng + offset;
             MarkerClusterItems offsetItem = new MarkerClusterItems(lat, lng, "Title " + i, "Snippet " + i);
@@ -411,6 +417,11 @@ public class MarkerCloseInfoWindowOnRetapDemoActivity extends AppCompatActivity 
     @Override
     public void updateData(ArrayList<PhotoModel> photoArrayList) {
         photoAdapter.updateData(photoArrayList);
+    }
+
+    @Override
+    public void onInfoWindowClick(Marker marker) {
+        marker.showInfoWindow();
     }
 
     /*

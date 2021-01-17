@@ -33,6 +33,7 @@ public class PhotoView extends AppCompatActivity implements IGetPhotoView {
     PhotoPresenter photoPresenter;
     ImageView imageView;
     private String TAG = "PhotoView";
+    public static int ALL_PHOTO = 0;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -55,6 +56,7 @@ public class PhotoView extends AppCompatActivity implements IGetPhotoView {
     private void initViewModel() {
         PhotoViewModel photoViewModel = new ViewModelProvider(
                 this, new ViewModelProvider.NewInstanceFactory()).get(PhotoViewModel.class);
+
         photoViewModel.setPresenter(photoPresenter);
         photoPagedListAdapter = new PhotoPagedListAdapter(this);
         setRecyclerView();
