@@ -162,6 +162,9 @@
         <activity
             android:name=".VisibleRegionDemoActivity"
             android:label="@string/visible_region_demo_label" />
+        <activity
+            android:name=".GooglePhotoBottomSheet"
+            android:label="Google Photo Bottom Sheet style" />
 
     </application>
 

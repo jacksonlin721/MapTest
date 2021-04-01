@@ -135,6 +135,9 @@ public final class DemoDetailsList {
                     VisibleRegionDemoActivity.class),
             new DemoDetails(R.string.folder_test,
                     R.string.folder_test,
-                    FolderTest.class)
+                    FolderTest.class),
+            new DemoDetails(R.string.google_photo,
+                    R.string.google_photo,
+                    GooglePhotoBottomSheet.class)
     };
 }
