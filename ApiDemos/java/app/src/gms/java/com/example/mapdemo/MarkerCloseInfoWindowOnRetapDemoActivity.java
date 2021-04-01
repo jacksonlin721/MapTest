@@ -51,8 +51,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -98,6 +102,9 @@ public class MarkerCloseInfoWindowOnRetapDemoActivity extends AppCompatActivity 
     private PhotoPresenter photoPresenter;
 
     private ClusterManager<MarkerClusterItems> clusterManager;
+    View bottom_sheet;
+    ImageView btnArrow;
+    TextView title;
 
     /**
      * Keeps track of the selected marker.
@@ -243,7 +250,9 @@ public class MarkerCloseInfoWindowOnRetapDemoActivity extends AppCompatActivity 
     }
 
     private void setupBottomSheet() {
-        View bottom_sheet = findViewById(R.id.bottom_sheet);
+        bottom_sheet = findViewById(R.id.bottom_sheet);
+        btnArrow = findViewById(R.id.btn_arrow);
+        title = findViewById(R.id.title);
         bottomSheetBehavior = BottomSheetBehavior.from(bottom_sheet);
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         bottomSheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
@@ -254,11 +263,42 @@ public class MarkerCloseInfoWindowOnRetapDemoActivity extends AppCompatActivity 
 
             @Override
             public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+                transitionBottomSheetBackgroundColor(slideOffset);
 
+                btnArrow.setVisibility(View.VISIBLE);
+                btnArrow.setAlpha(slideOffset);
+                
+                RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT
+                );
+                layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
+                title.setLayoutParams(layoutParams);
             }
         });
 
         getBottomSheetContentHeight(bottom_sheet);
+    }
+
+    private void transitionBottomSheetBackgroundColor(float slideOffset) {
+        int colorFrom = getResources().getColor(R.color.colorGray);
+        int colorTo = getResources().getColor(R.color.colorAccent);
+        bottom_sheet.setBackgroundColor(interpolateColor(slideOffset,
+                colorFrom, colorTo));
+    }
+
+    private int interpolateColor(float fraction, int startValue, int endValue) {
+        int startA = (startValue >> 24) & 0xff;
+        int startR = (startValue >> 16) & 0xff;
+        int startG = (startValue >> 8) & 0xff;
+        int startB = startValue & 0xff;
+        int endA = (endValue >> 24) & 0xff;
+        int endR = (endValue >> 16) & 0xff;
+        int endG = (endValue >> 8) & 0xff;
+        int endB = endValue & 0xff;
+        return ((startA + (int) (fraction * (endA - startA))) << 24) |
+                ((startR + (int) (fraction * (endR - startR))) << 16) |
+                ((startG + (int) (fraction * (endG - startG))) << 8) |
+                ((startB + (int) (fraction * (endB - startB))));
     }
 
     private void setRecyclerView() {
@@ -309,7 +349,7 @@ public class MarkerCloseInfoWindowOnRetapDemoActivity extends AppCompatActivity 
                 .build();
         mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 50));
 
-        handlingMarkerCluster();
+//        handlingMarkerCluster();
     }
 
     private void addMarkersToMap() {

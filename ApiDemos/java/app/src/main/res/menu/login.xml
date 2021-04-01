@@ -3,6 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/show_bottom_sheet"
+        android:title="show-bottom-sheet"
+        android:icon="@drawable/googleg_standard_color_18"
+        app:showAsAction="always"/>
+
+    <item
         android:id="@+id/signin"
         android:title="sing-in"
         android:icon="@android:drawable/ic_input_add"
