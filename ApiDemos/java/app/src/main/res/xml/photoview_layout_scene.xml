@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MotionScene xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:motion="http://schemas.android.com/apk/res-auto">
+
+    <Transition
+        app:constraintSetEnd="@+id/end"
+        app:constraintSetStart="@+id/start" >
+
+        <OnSwipe
+            app:dragDirection="dragUp"
+            app:touchAnchorSide="top"
+            app:touchAnchorId="@+id/photo_view"/>
+
+    </Transition>
+
+    <ConstraintSet android:id="@+id/start">
+        <Constraint
+            android:id="@+id/photo_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            motion:layout_constraintTop_toTopOf="parent"
+            motion:layout_constraintBottom_toBottomOf="parent"/>
+        <Constraint
+            android:id="@+id/info_layout"
+            android:layout_width="match_parent"
+            android:layout_height="1920dp"
+            android:visibility="invisible"
+            motion:layout_constraintTop_toBottomOf="@+id/photo_view"/>
+    </ConstraintSet>
+
+    <ConstraintSet android:id="@+id/end">
+        <Constraint
+            android:id="@id/photo_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toTopOf="parent"/>
+        <Constraint
+            android:id="@+id/info_layout"
+            android:layout_width="match_parent"
+            android:layout_height="1920dp"
+            android:visibility="visible"
+            app:layout_constraintTop_toTopOf="parent"/>
+    </ConstraintSet>
+
+</MotionScene>
